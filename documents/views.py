@@ -19,7 +19,6 @@ from .serializers import (
     ApproveRejectSerializer,
 )
 from .models import Company, DomainEntity, Document, DocumentValidation, Approver
-from .utils import validate_approver_exists
 import uuid
 
 logger = logging.getLogger(__name__)
@@ -237,7 +236,7 @@ class DocumentCreateView(ErrorHandlerMixin, APIView):
                     approver_id = step_data['approver_user_id']  # This is now an Approver UUID
                     
                     try:
-                        approver = validate_approver_exists(approver_id)
+                        approver = Approver.objects.get(id=approver_id)
                     except Approver.DoesNotExist:
                         # Rollback transaction
                         document.delete()
@@ -296,7 +295,7 @@ class BaseDocumentValidationView(ErrorHandlerMixin, APIView):
                 )
             
             # Get the approver
-            approver = validate_approver_exists(approver_id)
+            approver = Approver.objects.get(id=approver_id)
             
             # Find the validation step assigned to this approver
             validation = document.get_pending_validation_for_approver(approver)

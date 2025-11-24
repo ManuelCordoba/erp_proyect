@@ -3,7 +3,6 @@ Serializers for S3 Pre-signed URLs API endpoints and Document Management.
 """
 from rest_framework import serializers
 from .models import Company, DomainEntity, Document, DocumentValidation, Approver
-from .utils import validate_approver_exists
 
 
 class PresignedUploadSerializer(serializers.Serializer):
@@ -40,7 +39,7 @@ class ApproverUUIDField(serializers.UUIDField):
         """Validate and return the approver UUID."""
         value = super().to_internal_value(data)
         try:
-            validate_approver_exists(value)
+            Approver.objects.get(id=value)
         except Approver.DoesNotExist:
             raise serializers.ValidationError(f"Approver with ID {value} does not exist.")
         return value
