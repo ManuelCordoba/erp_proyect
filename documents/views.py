@@ -100,32 +100,6 @@ class PresignedUploadURLView(ErrorHandlerMixin, APIView):
         except Exception as e:
             return self.handle_exception(e)
 
-
-class PresignedDownloadURLView(ErrorHandlerMixin, APIView):
-    """
-    API endpoint to generate pre-signed URL for downloading files from S3.
-    POST /api/documents/presigned-download-url/
-    """
-    
-    def post(self, request):
-        serializer = PresignedDownloadSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        bucket_key = serializer.validated_data['bucket_key']
-        
-        try:
-            download_url = generate_presigned_download_url(bucket_key)
-            
-            response_serializer = PresignedDownloadResponseSerializer({
-                'download_url': download_url,
-                'bucket_key': bucket_key
-            })
-            return Response(response_serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return self.handle_exception(e)
-
-
 class DocumentDownloadView(ErrorHandlerMixin, APIView):
     """
     API endpoint to generate pre-signed URL for downloading a document by its ID.

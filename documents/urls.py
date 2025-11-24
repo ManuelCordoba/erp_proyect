@@ -17,9 +17,6 @@ urlpatterns = [
     # Generate pre-signed URL for upload
     path('presigned-upload-url/', PresignedUploadURLView.as_view(), name='presigned-upload-url'),
     
-    # Generate pre-signed URL for download
-    path('presigned-download-url/', PresignedDownloadURLView.as_view(), name='presigned-download-url'),
-    
     # Create document record
     path('', DocumentCreateView.as_view(), name='document-create'),
     
