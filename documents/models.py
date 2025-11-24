@@ -98,13 +98,6 @@ class Document(models.Model):
         ('R', 'Rejected'),
     ]
 
-    DOCUMENT_TYPE_CHOICES = [
-        ('FOTO_VEHICULO', 'Vehicle Photo'),
-        ('DOC_EMPLEADO', 'Employee Document'),
-        ('CERT_TRIBUTARIO', 'Tax Certificate'),
-        ('OTRO', 'Other'),
-    ]
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
     # Main relationships
@@ -123,12 +116,6 @@ class Document(models.Model):
     
     # File metadata
     name = models.CharField(max_length=255, verbose_name="Document Name")
-    document_type = models.CharField(
-        max_length=50,
-        choices=DOCUMENT_TYPE_CHOICES,
-        default='OTRO',
-        verbose_name="Document Type"
-    )
     size = models.BigIntegerField(verbose_name="Size (bytes)", validators=[MinValueValidator(0)])
     mime_type = models.CharField(max_length=100, verbose_name="MIME Type")
     file_hash = models.CharField(
@@ -181,7 +168,6 @@ class Document(models.Model):
         indexes = [
             models.Index(fields=['company', 'validation_status']),
             models.Index(fields=['domain_entity']),
-            models.Index(fields=['document_type']),
         ]
 
     def __str__(self):

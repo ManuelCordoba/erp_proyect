@@ -39,7 +39,6 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = [
         'name',
         'company',
-        'document_type',
         'validation_status',
         'size_mb_display',
         'creator',
@@ -47,7 +46,6 @@ class DocumentAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'company',
-        'document_type',
         'validation_status',
         'created_at'
     ]
@@ -61,7 +59,7 @@ class DocumentAdmin(admin.ModelAdmin):
     ]
     fieldsets = (
         ('Basic Information', {
-            'fields': ('id', 'name', 'document_type', 'company', 'domain_entity', 'creator')
+            'fields': ('id', 'name', 'company', 'domain_entity', 'creator')
         }),
         ('File Metadata', {
             'fields': ('size', 'size_mb_display', 'mime_type', 'file_hash', 'bucket_key')

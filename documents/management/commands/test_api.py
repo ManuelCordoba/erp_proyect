@@ -15,9 +15,11 @@ class Command(BaseCommand):
     
     # Configuration - Modify these values as needed
     API_BASE_URL = "http://localhost:8000/api/documents"
-    FILE_PATH = "test.pdf"  # Path to the file to upload
+    FILE_PATH = "tesla.jpg"  # Path to the file to upload
     CREATE_DB_DOCUMENT = True  # Whether to create document record after upload
     DOWNLOAD_FILE = True  # Whether to download file after upload
+
+
     # Document creation parameters
     COMPANY_ID = "550e8400-e29b-41d4-a716-446655440000"  # Company UUID
     ENTITY_TYPE = "vehicle"  # Entity type: vehicle, employee, other
@@ -155,6 +157,16 @@ class Command(BaseCommand):
                     "mime_type": content_type,
                     "size_bytes": file_size,
                     "bucket_key": bucket_key
+                },
+                "validation_flow": {
+                    "enabled": True,
+                    "steps": [
+                    { "order": 1, "approver_user_id": "d39f8aa3-0bc5-4640-b621-9af77a2fae69" },
+                    { "order": 2, "approver_user_id": "32fcf504-f58b-43af-be32-4a8df7e54e96" },
+                    { "order": 3, "approver_user_id": "0635d7a2-8442-45d6-b86c-08d88bf67efa" },
+                    { "order": 4, "approver_user_id": "e32c009f-8c5a-43c7-a989-abb8e6d5a247" },
+                    { "order": 5, "approver_user_id": "398fb9e9-3cab-458a-b095-3a97706512b3" }
+                    ]
                 }
             }
             
@@ -189,16 +201,23 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('=' * 60))
             
             try:
-                # Get presigned download URL
-                download_request = {
-                    "bucket_key": bucket_key
-                }
-                
-                download_url_response = requests.post(
-                    f"{api_base_url}/presigned-download-url/",
-                    json=download_request,
-                    timeout=30
-                )
+                # Use new GET endpoint if document_id is available, otherwise use POST endpoint
+                if document_id:
+                    self.stdout.write(f'Using GET endpoint with document_id: {document_id}')
+                    download_url_response = requests.get(
+                        f"{api_base_url}/{document_id}/download/",
+                        timeout=30
+                    )
+                else:
+                    self.stdout.write(f'Using POST endpoint with bucket_key: {bucket_key}')
+                    download_request = {
+                        "bucket_key": bucket_key
+                    }
+                    download_url_response = requests.post(
+                        f"{api_base_url}/presigned-download-url/",
+                        json=download_request,
+                        timeout=30
+                    )
                 
                 if download_url_response.status_code != 200:
                     self.stdout.write(self.style.ERROR(f'❌ Error getting download URL: {download_url_response.text}'))
@@ -206,6 +225,8 @@ class Command(BaseCommand):
                 
                 download_data = download_url_response.json()
                 download_url = download_data['download_url']
+                
+                self.stdout.write(f'Download URL obtained: {download_url[:80]}...')
                 
                 # Download file
                 file_download = requests.get(download_url, timeout=300)

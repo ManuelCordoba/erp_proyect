@@ -127,6 +127,30 @@ class PresignedDownloadURLView(ErrorHandlerMixin, APIView):
             return self.handle_exception(e)
 
 
+class DocumentDownloadView(ErrorHandlerMixin, APIView):
+    """
+    API endpoint to generate pre-signed URL for downloading a document by its ID.
+    GET /api/documents/{document_id}/download/
+    """
+    
+    def get(self, request, document_id):
+        try:
+            document = Document.objects.get(id=document_id)
+            
+            download_url = generate_presigned_download_url(document.bucket_key)
+            
+            return Response({
+                'download_url': download_url
+            }, status=status.HTTP_200_OK)
+        except Document.DoesNotExist:
+            return Response(
+                {'error': 'Document does not exist.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return self.handle_exception(e)
+
+
 
 class DocumentCreateView(ErrorHandlerMixin, APIView):
     """

@@ -1,0 +1,419 @@
+{
+	"info": {
+		"_postman_id": "erp-documents-api-001",
+		"name": "ERP Documents API",
+		"description": "Colección completa para probar las APIs del sistema de gestión de documentos ERP",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Upload & Download URLs",
+			"item": [
+				{
+					"name": "Get Presigned Upload URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has upload_url\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('upload_url');",
+									"    pm.expect(jsonData).to.have.property('fields');",
+									"    pm.expect(jsonData).to.have.property('bucket_key');",
+									"    ",
+									"    // Guardar bucket_key para uso posterior",
+									"    if (jsonData.bucket_key) {",
+									"        pm.collectionVariables.set('bucket_key', jsonData.bucket_key);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"file_name\": \"test-document.pdf\",\n  \"content_type\": \"application/pdf\",\n  \"bucket_key\": \"uploads/{{$randomUUID}}/test-document.pdf\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/presigned-upload-url/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"presigned-upload-url",
+								""
+							]
+						},
+						"description": "Genera una URL pre-firmada temporal para subir un archivo directamente a S3.\n\n**Nota:** Después de obtener la URL, debes hacer un POST multipart/form-data a la `upload_url` con los campos del objeto `fields` y el archivo."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Presigned Download URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has download_url\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('download_url');",
+									"    pm.expect(jsonData).to.have.property('bucket_key');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bucket_key\": \"{{bucket_key}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/presigned-download-url/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"presigned-download-url",
+								""
+							]
+						},
+						"description": "Genera una URL pre-firmada temporal para descargar un archivo desde S3."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para generar URLs pre-firmadas de S3 para upload y download de archivos."
+		},
+		{
+			"name": "2. Document Management",
+			"item": [
+				{
+					"name": "Create Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has document data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"    pm.expect(jsonData).to.have.property('bucket_key');",
+									"    pm.expect(jsonData).to.have.property('validation_status');",
+									"    ",
+									"    // Guardar document_id para uso posterior",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set('document_id', jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"entity\": {\n    \"entity_type\": \"vehicle\",\n    \"entity_id\": \"{{entity_id}}\"\n  },\n  \"document\": {\n    \"name\": \"Documento de Vehículo\",\n    \"mime_type\": \"application/pdf\",\n    \"size_bytes\": 1024000,\n    \"bucket_key\": \"{{bucket_key}}\"\n  },\n  \"validation_flow\": {\n    \"enabled\": true,\n    \"steps\": [\n      {\n        \"order\": 1,\n        \"approver_user_id\": \"{{approver_user_id_1}}\"\n      },\n      {\n        \"order\": 2,\n        \"approver_user_id\": \"{{approver_user_id_2}}\"\n      }\n    ]\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Crea un registro de documento en la base de datos. El archivo debe existir previamente en S3.\n\n**Tipos de entidad válidos:** vehicle, employee, other\n\n**Nota:** El `bucket_key` debe corresponder a un archivo que ya existe en S3."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Document (Without Validation)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has document data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.validation_status).to.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"entity\": {\n    \"entity_type\": \"employee\",\n    \"entity_id\": \"{{entity_id}}\"\n  },\n  \"document\": {\n    \"name\": \"Documento de Empleado\",\n    \"mime_type\": \"application/pdf\",\n    \"size_bytes\": 512000,\n    \"bucket_key\": \"{{bucket_key}}\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Crea un documento sin flujo de validación."
+					},
+					"response": []
+				},
+				{
+					"name": "Download Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has download_url\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('download_url');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{document_id}}/download/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{document_id}}",
+								"download",
+								""
+							]
+						},
+						"description": "Genera una URL pre-firmada temporal para descargar un documento por su ID.\n\n**Nota:** El `document_id` debe ser un UUID válido de un documento existente en la base de datos."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para crear y gestionar documentos en la base de datos."
+		},
+		{
+			"name": "3. Document Validation",
+			"item": [
+				{
+					"name": "Approve Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has document data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('validation_status');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"approver_user_id\": \"{{approver_user_id_1}}\",\n  \"reason\": \"Documento revisado y aprobado correctamente\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{document_id}}/approve/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{document_id}}",
+								"approve",
+								""
+							]
+						},
+						"description": "Aprueba un paso de validación del documento. Si se aprueba un paso, se aprueban automáticamente todos los pasos anteriores con orden menor o igual.\n\n**Nota:** El `approver_user_id` debe ser el UUID de un Approver que tenga un paso de validación pendiente asignado."
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has document data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.validation_status).to.eql('R');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"approver_user_id\": \"{{approver_user_id_1}}\",\n  \"reason\": \"Documento incompleto, falta información requerida\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/{{document_id}}/reject/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{document_id}}",
+								"reject",
+								""
+							]
+						},
+						"description": "Rechaza un paso de validación del documento. Al rechazar, el documento queda en estado \"Rejected\".\n\n**Nota:** El `approver_user_id` debe ser el UUID de un Approver que tenga un paso de validación pendiente asignado."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para aprobar y rechazar documentos en el flujo de validación."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api/documents",
+			"type": "string"
+		},
+		{
+			"key": "company_id",
+			"value": "550e8400-e29b-41d4-a716-446655440000",
+			"type": "string"
+		},
+		{
+			"key": "entity_id",
+			"value": "123e4567-e89b-12d3-a456-426614174000",
+			"type": "string"
+		},
+		{
+			"key": "document_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bucket_key",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "approver_user_id_1",
+			"value": "45993f29-232d-427b-8426-4608be8f3194",
+			"type": "string"
+		},
+		{
+			"key": "approver_user_id_2",
+			"value": "6f3d89fa-72fb-4a0b-8ba4-87dc394b1941",
+			"type": "string"
+		}
+	]
+}
+

@@ -131,9 +131,9 @@ Renombrar el archivo `renombrar.env` a `.env` en la raíz del proyecto, la estru
 
 ```env
 # Database
-DB_NAME=erp_documents
+DB_NAME=erp_project
 DB_USER=postgres
-DB_PASSWORD=tu_password
+DB_PASSWORD=password
 DB_HOST=localhost
 DB_PORT=5432
 
@@ -166,7 +166,8 @@ Base URL: `http://localhost:8000/api/documents/`
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `POST` | `/presigned-upload-url/` | Generar URL pre-firmada para subir archivo |
-| `POST` | `/presigned-download-url/` | Generar URL pre-firmada para descargar archivo |
+| `POST` | `/presigned-download-url/` | Generar URL pre-firmada para descargar archivo (por bucket_key) |
+| `GET` | `/{document_id}/download/` | Generar URL pre-firmada para descargar documento (por document_id) |
 | `POST` | `/` | Crear registro de documento en BD |
 | `POST` | `/{document_id}/approve/` | Aprobar documento |
 | `POST` | `/{document_id}/reject/` | Rechazar documento |
@@ -258,6 +259,36 @@ curl -X POST http://localhost:8000/api/documents/presigned-download-url/ \
 
 ---
 
+### 2.1️⃣ Descargar Documento por ID
+
+**Endpoint:** `GET /api/documents/{document_id}/download/`
+
+**Descripción:** Genera una URL pre-firmada temporal para descargar un documento usando su ID.
+
+**Parámetros de URL:**
+- `document_id` (UUID): ID del documento a descargar
+
+**Response 200 OK:**
+```json
+{
+  "download_url": "https://s3.amazonaws.com/bucket/...?AWSAccessKeyId=..."
+}
+```
+
+**Response 404 Not Found:**
+```json
+{
+  "error": "Document does not exist."
+}
+```
+
+**Ejemplo con cURL:**
+```bash
+curl -X GET http://localhost:8000/api/documents/550e8400-e29b-41d4-a716-446655440000/download/
+```
+
+---
+
 ### 3️⃣ Crear Documento
 
 **Endpoint:** `POST /api/documents/`
@@ -304,7 +335,6 @@ curl -X POST http://localhost:8000/api/documents/presigned-download-url/ \
 {
   "id": "document-uuid",
   "name": "Documento de Vehículo",
-  "document_type": "OTRO",
   "size": 1024000,
   "mime_type": "application/pdf",
   "bucket_key": "uploads/uuid/documento.pdf",
@@ -534,7 +564,13 @@ graph TD
 
 ### Probar APIs
 
-Comando para probar el flujo completo de APIs:
+Comando para probar el flujo de APIs:
+
+- Generar presigned URL para subir archivo
+- Consumir de url para subir archivo
+- Registrar documento en DB
+- Generar presigned URL para descargar archivo
+- Consumir de url para descargar archivo
 
 ```bash
 python manage.py test_api
@@ -572,12 +608,4 @@ python manage.py seed_data
 - No almacenar URLs pre-firmadas, generarlas bajo demanda
 
 ---
-
-<div align="center">
-
-**⭐ Si este proyecto te fue útil, considera darle una estrella ⭐**
-
-Made with ❤️ using Django
-
-</div>
 

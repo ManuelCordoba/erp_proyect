@@ -8,6 +8,7 @@ from .views import (
     DocumentCreateView,
     DocumentApproveView,
     DocumentRejectView,
+    DocumentDownloadView,
 )
 
 app_name = 'documents'
@@ -21,6 +22,9 @@ urlpatterns = [
     
     # Create document record
     path('', DocumentCreateView.as_view(), name='document-create'),
+    
+    # Download document by ID
+    path('<uuid:document_id>/download/', DocumentDownloadView.as_view(), name='document-download'),
     
     # Approve document
     path('<uuid:document_id>/approve/', DocumentApproveView.as_view(), name='document-approve'),

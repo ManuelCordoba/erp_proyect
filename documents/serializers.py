@@ -121,7 +121,7 @@ class DocumentResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = [
-            'id', 'name', 'document_type', 'size', 'mime_type',
+            'id', 'name', 'size', 'mime_type',
             'bucket_key', 'validation_status', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
