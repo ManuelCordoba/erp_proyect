@@ -23,61 +23,87 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('Clearing existing data...'))
             Company.objects.all().delete()
             # Delete approvers first (they reference users)
-            Approver.objects.filter(user__username__in=['sebastian', 'camilo', 'juan', 'admin']).delete()
+            approver_usernames = [f'aprobador{i}' for i in range(1, 6)]
+            Approver.objects.filter(user__username__in=approver_usernames).delete()
             # Don't delete all users, only test users
-            User.objects.filter(username__in=['sebastian', 'camilo', 'juan', 'admin']).delete()
+            User.objects.filter(username__in=approver_usernames).delete()
             self.stdout.write(self.style.SUCCESS('Existing data cleared.'))
 
         self.stdout.write(self.style.SUCCESS('Starting data seeding...'))
 
-        # Create Company
-        company_id = uuid.UUID('550e8400-e29b-41d4-a716-446655440000')
-        company, created = Company.objects.get_or_create(
-            id=company_id,
-            defaults={
+        # Create 2 Companies
+        companies_data = [
+            {
+                'id': uuid.UUID('550e8400-e29b-41d4-a716-446655440000'),
                 'name': 'Empresa de Prueba S.A.',
                 'nit': '900123456-7',
                 'active': True
-            }
-        )
-        if created:
-            self.stdout.write(self.style.SUCCESS(f'✓ Created company: {company.name} (ID: {company.id})'))
-        else:
-            self.stdout.write(self.style.WARNING(f'⚠ Company already exists: {company.name} (ID: {company.id})'))
+            },
+            {
+                'id': uuid.UUID('660e8400-e29b-41d4-a716-446655440001'),
+                'name': 'Empresa Tecnológica S.A.S.',
+                'nit': '900987654-3',
+                'active': True
+            },
+        ]
 
-        # Create Users
+        companies_created = []
+        for company_data in companies_data:
+            company, created = Company.objects.get_or_create(
+                id=company_data['id'],
+                defaults={
+                    'name': company_data['name'],
+                    'nit': company_data['nit'],
+                    'active': company_data['active']
+                }
+            )
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'✓ Created company: {company.name} (ID: {company.id})'))
+            else:
+                self.stdout.write(self.style.WARNING(f'⚠ Company already exists: {company.name} (ID: {company.id})'))
+            companies_created.append(company)
+
+        # Create 5 Generic Approver Users
         users_data = [
             {
-                'username': 'sebastian',
-                'email': 'sebastian@example.com',
-                'first_name': 'Sebastian',
-                'last_name': 'Garcia',
+                'username': 'aprobador1',
+                'email': 'aprobador1@example.com',
+                'first_name': 'Aprobador',
+                'last_name': 'Uno',
                 'is_staff': False,
                 'is_superuser': False,
             },
             {
-                'username': 'camilo',
-                'email': 'camilo@example.com',
-                'first_name': 'Camilo',
-                'last_name': 'Rodriguez',
+                'username': 'aprobador2',
+                'email': 'aprobador2@example.com',
+                'first_name': 'Aprobador',
+                'last_name': 'Dos',
                 'is_staff': False,
                 'is_superuser': False,
             },
             {
-                'username': 'juan',
-                'email': 'juan@example.com',
-                'first_name': 'Juan',
-                'last_name': 'Perez',
+                'username': 'aprobador3',
+                'email': 'aprobador3@example.com',
+                'first_name': 'Aprobador',
+                'last_name': 'Tres',
                 'is_staff': False,
                 'is_superuser': False,
             },
             {
-                'username': 'admin',
-                'email': 'admin@example.com',
-                'first_name': 'Admin',
-                'last_name': 'User',
-                'is_staff': True,
-                'is_superuser': True,
+                'username': 'aprobador4',
+                'email': 'aprobador4@example.com',
+                'first_name': 'Aprobador',
+                'last_name': 'Cuatro',
+                'is_staff': False,
+                'is_superuser': False,
+            },
+            {
+                'username': 'aprobador5',
+                'email': 'aprobador5@example.com',
+                'first_name': 'Aprobador',
+                'last_name': 'Cinco',
+                'is_staff': False,
+                'is_superuser': False,
             },
         ]
 
@@ -102,31 +128,33 @@ class Command(BaseCommand):
                     f'⚠ User already exists: {user.username} (ID: {user.id})'
                 ))
             
-            # Create Approver for each user (except admin, unless needed)
-            if user_data['username'] != 'admin':  # Only create approvers for non-admin users
-                approver, approver_created = Approver.objects.get_or_create(
-                    user=user,
-                    defaults={'active': True}
-                )
-                if approver_created:
-                    self.stdout.write(self.style.SUCCESS(
-                        f'✓ Created approver: {approver.user.username} (Approver ID: {approver.id})'
-                    ))
-                    approvers_created.append(approver)
-                else:
-                    self.stdout.write(self.style.WARNING(
-                        f'⚠ Approver already exists for user: {user.username} (Approver ID: {approver.id})'
-                    ))
-                    approvers_created.append(approver)
+            # Create Approver for each user
+            approver, approver_created = Approver.objects.get_or_create(
+                user=user,
+                defaults={'active': True}
+            )
+            if approver_created:
+                self.stdout.write(self.style.SUCCESS(
+                    f'✓ Created approver: {approver.user.username} (Approver ID: {approver.id})'
+                ))
+                approvers_created.append(approver)
+            else:
+                self.stdout.write(self.style.WARNING(
+                    f'⚠ Approver already exists for user: {user.username} (Approver ID: {approver.id})'
+                ))
+                approvers_created.append(approver)
 
         self.stdout.write(self.style.SUCCESS('\n✓ Data seeding completed!'))
         self.stdout.write(self.style.SUCCESS('\n' + '='*60))
         self.stdout.write(self.style.SUCCESS('SUMMARY'))
         self.stdout.write(self.style.SUCCESS('='*60))
-        self.stdout.write(f'\nCompany:')
-        self.stdout.write(f'  ID: {company.id}')
-        self.stdout.write(f'  Name: {company.name}')
-        self.stdout.write(f'  NIT: {company.nit}')
+        
+        self.stdout.write(f'\nCompanies ({len(companies_created)}):')
+        for company in companies_created:
+            self.stdout.write(f'  • {company.name}')
+            self.stdout.write(f'    ID: {company.id}')
+            self.stdout.write(f'    NIT: {company.nit}')
+            self.stdout.write(f'    Active: {company.active}')
         
         self.stdout.write(f'\nUsers (Password for all: test123):')
         for user_data in users_data:
@@ -136,40 +164,11 @@ class Command(BaseCommand):
             self.stdout.write(f'    Email: {user.email}')
             self.stdout.write(f'    Name: {user.first_name} {user.last_name}')
         
-        self.stdout.write(f'\nApprovers (Use these UUIDs in API requests):')
+        self.stdout.write(f'\nApprovers ({len(approvers_created)}):')
         for approver in approvers_created:
             self.stdout.write(f'  • {approver.user.username}')
             self.stdout.write(f'    Approver UUID: {approver.id}')
             self.stdout.write(f'    User: {approver.user.get_full_name()}')
+            self.stdout.write(f'    Active: {approver.active}')
         
-        self.stdout.write(self.style.SUCCESS('\n' + '='*60))
-        self.stdout.write(self.style.SUCCESS('Example API Request:'))
-        self.stdout.write(self.style.SUCCESS('='*60))
-        sebastian_approver = Approver.objects.get(user__username='sebastian')
-        camilo_approver = Approver.objects.get(user__username='camilo')
-        juan_approver = Approver.objects.get(user__username='juan')
-        
-        example_json = f'''{{
-  "company_id": "{company.id}",
-  "entity": {{
-    "entity_type": "vehicle",
-    "entity_id": "cualquier-uuid-aqui"
-  }},
-  "document": {{
-    "name": "soat.pdf",
-    "mime_type": "application/pdf",
-    "size_bytes": 123456,
-    "bucket_key": "companies/{company.id}/vehicles/uuid-veh/docs/soat-2025.pdf"
-  }},
-  "validation_flow": {{
-    "enabled": true,
-    "steps": [
-      {{ "order": 1, "approver_user_id": "{sebastian_approver.id}" }},
-      {{ "order": 2, "approver_user_id": "{camilo_approver.id}" }},
-      {{ "order": 3, "approver_user_id": "{juan_approver.id}" }}
-    ]
-  }}
-}}'''
-        self.stdout.write(example_json)
-        self.stdout.write(self.style.SUCCESS('='*60 + '\n'))
-
+        self.stdout.write(self.style.SUCCESS('\n' + '='*60 + '\n'))

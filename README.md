@@ -29,7 +29,6 @@
 - [Modelos de Datos](#-modelos-de-datos)
 - [Flujo de Trabajo](#-flujo-de-trabajo)
 - [Comandos de Gestión](#-comandos-de-gestión)
-- [Testing](#-testing)
 
 ---
 
@@ -67,7 +66,6 @@ Sistema ERP para la gestión de documentos empresariales que permite:
 - **Base de Datos**: PostgreSQL
 - **Almacenamiento**: AWS S3
 - **Lenguaje**: Python 3.8+
-- **Autenticación**: Django Auth (configurable)
 
 ---
 
@@ -129,7 +127,7 @@ python manage.py createsuperuser
 
 ### Variables de Entorno
 
-Crear un archivo `.env` en la raíz del proyecto:
+Renombrar el archivo `renombrar.env` a `.env` en la raíz del proyecto, la estructura es la siguiente:
 
 ```env
 # Database
@@ -561,33 +559,7 @@ python manage.py seed_data
 
 ---
 
-## 🧪 Testing
-
-### Ejecutar Tests
-
-```bash
-python manage.py test
-```
-
-### Probar Endpoints Manualmente
-
-Usar el comando `test_api` o herramientas como:
-
-- **Postman**
-- **cURL**
-- **HTTPie**
-- **Swagger/OpenAPI** (si está configurado)
-
----
-
 ## 📝 Notas Importantes
-
-### Seguridad
-
-- ⚠️ En producción, cambiar `AllowAny` a `IsAuthenticated` en `settings.py`
-- ⚠️ Usar HTTPS en producción
-- ⚠️ Configurar CORS apropiadamente
-- ⚠️ Rotar credenciales AWS regularmente
 
 ### Transacciones
 
@@ -598,28 +570,6 @@ Usar el comando `test_api` o herramientas como:
 
 - Las URLs tienen expiración configurable (default: 3600 segundos)
 - No almacenar URLs pre-firmadas, generarlas bajo demanda
-
----
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Este proyecto es privado y confidencial.
-
----
-
-## 👥 Autor
-
-Desarrollado como parte de la prueba técnica ERP.
 
 ---
 
