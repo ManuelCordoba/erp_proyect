@@ -24,7 +24,7 @@ class Command(BaseCommand):
     COMPANY_ID = "550e8400-e29b-41d4-a716-446655440000"  # Company UUID
     ENTITY_TYPE = "vehicle"  # Entity type: vehicle, employee, other
     ENTITY_ID = "123e4567-e89b-12d3-a456-426614174000"  # Entity UUID
-    BUCKET_KEY = f"companies/{COMPANY_ID}/documents/{ENTITY_TYPE}/{ENTITY_ID}/test.pdf"  # Bucket key to upload the file to
+    BUCKET_KEY = ""  # Bucket key to upload the file to
 
     def handle(self, *args, **options):
         file_path = self.FILE_PATH
@@ -36,6 +36,7 @@ class Command(BaseCommand):
         
         # Get file info
         file_name = os.path.basename(file_path)
+        self.BUCKET_KEY = f"companies/{self.COMPANY_ID}/documents/{self.ENTITY_TYPE}/{self.ENTITY_ID}/{file_name}"
         content_type, _ = mimetypes.guess_type(file_path)
         if not content_type:
             content_type = 'application/octet-stream'
@@ -161,11 +162,9 @@ class Command(BaseCommand):
                 "validation_flow": {
                     "enabled": True,
                     "steps": [
-                    { "order": 1, "approver_user_id": "d39f8aa3-0bc5-4640-b621-9af77a2fae69" },
-                    { "order": 2, "approver_user_id": "32fcf504-f58b-43af-be32-4a8df7e54e96" },
-                    { "order": 3, "approver_user_id": "0635d7a2-8442-45d6-b86c-08d88bf67efa" },
-                    { "order": 4, "approver_user_id": "e32c009f-8c5a-43c7-a989-abb8e6d5a247" },
-                    { "order": 5, "approver_user_id": "398fb9e9-3cab-458a-b095-3a97706512b3" }
+                    { "order": 1, "approver_user_id": "bdff8021-3f69-4f69-97b3-0376627aaf4e" },
+                    { "order": 2, "approver_user_id": "7e33c89b-ad5d-40f5-bfc3-1f10bd652c1e" },
+                    { "order": 3, "approver_user_id": "7c30d6b3-67fe-4ba6-933c-9e3c2b59ccee" }
                     ]
                 }
             }

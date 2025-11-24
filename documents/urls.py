@@ -4,7 +4,6 @@ URL routing for S3 Pre-signed URLs API and Document Management.
 from django.urls import path
 from .views import (
     PresignedUploadURLView,
-    PresignedDownloadURLView,
     DocumentCreateView,
     DocumentApproveView,
     DocumentRejectView,
