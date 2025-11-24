@@ -1,0 +1,31 @@
+{
+  "company_id": "550e8400-e29b-41d4-a716-446655440000",
+  "entity": {
+    "entity_type": "vehicle",
+    "entity_id": "123e4567-e89b-12d3-a456-426614174000"
+  },
+  "document": {
+    "name": "soat.pdf",
+    "mime_type": "application/pdf",
+    "size_bytes": 123456,
+    "bucket_key": "companies/550e8400-e29b-41d4-a716-446655440000/vehicles/123e4567-e89b-12d3-a456-426614174000/docs/soat-2025.pdf"
+  },
+  "validation_flow": {
+    "enabled": true,
+    "steps": [
+      {
+        "order": 1,
+        "approver_user_id": "REEMPLAZAR_CON_UUID_DE_SEBASTIAN"
+      },
+      {
+        "order": 2,
+        "approver_user_id": "REEMPLAZAR_CON_UUID_DE_CAMILO"
+      },
+      {
+        "order": 3,
+        "approver_user_id": "REEMPLAZAR_CON_UUID_DE_JUAN"
+      }
+    ]
+  }
+}
+
